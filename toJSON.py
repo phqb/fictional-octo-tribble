@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-json = 'model = ['
+json = 'window.MNIST_TRAINED_MODEL = ['
 
 for i in range(10):
 	f = open('w' + str(i), 'r')
