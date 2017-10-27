@@ -90,6 +90,7 @@
   </script>
   <div id="content">
     <h1>Hand-written digits regconization</h1>
+    <br>
     <center>
       <canvas id="drwCanvas" width="400" height="400"></canvas>
       <canvas id="tmpCanvas" width="28" height="28" style="display: none"></canvas>
@@ -137,23 +138,39 @@
 
       let startDrawing = function(e) {
         going = true
-        lastX = e.offsetX
-        lastY = e.offsetY
+        let x = e.clientX
+        let y = e.clientY
+        if (e.touches) {
+          x = e.touches[0].clientX
+          y = e.touches[0].clientY
+        }
+        let rect = drwCanvas.getBoundingClientRect()
+        lastX = x - rect.left
+        lastY = y - rect.top
         drawPoint(drawingCtx, lastX, lastY)
       }
 
-      $('#drwCanvas').mousedown(startDrawing)
+      drwCanvas.addEventListener('mousedown', startDrawing)
+      drwCanvas.addEventListener('touchstart', startDrawing)
 
       let stopDrawing = function(e) {
         going = false
       }
 
-      $('#drwCanvas').mouseup(stopDrawing)
+      drwCanvas.addEventListener('mouseup', stopDrawing)
+      drwCanvas.addEventListener('touchend', stopDrawing)
 
       let onDrawing = function(e){
         if(going){
-          curX = e.offsetX
-          curY = e.offsetY
+          let x = e.clientX
+          let y = e.clientY
+          if (e.touches) {
+            x = e.touches[0].clientX
+            y = e.touches[0].clientY
+          }
+          let rect = drwCanvas.getBoundingClientRect()
+          curX = x - rect.left
+          curY = y - rect.top
           
           let dis = Math.sqrt(Math.pow(lastX - curX, 2) + Math.pow(lastY - curY, 2))
           
@@ -167,7 +184,8 @@
         }
       }
 
-      $('#drwCanvas').mousemove(onDrawing)
+      drwCanvas.addEventListener('mousemove', onDrawing)
+      drwCanvas.addEventListener('touchmove', onDrawing)
 
       $('#clearCanvasBtn').click(function(e) {
         drawingCtx.clearRect(0, 0, drwCanvas.width, drwCanvas.height)
