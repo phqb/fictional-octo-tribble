@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <title>Hand-written digits regconization</title>
+  <style>
+    body {
+      padding: 24px;
+    }
+    #content {
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #drwCanvas, #tmpCanvas {
+      border: 2px solid gray;
+    }
+    #loadingMask {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      position: absolute;
+      background: white;
+      z-index: 98;
+    }
+    #initLoading {
+      background: lightgray;
+      width: 64px;
+      height: 64px;
+      position: fixed;
+      top: calc(50% - 32px);
+      left: calc(50% - 32px);
+      border-radius: 100%;
+      z-index: 99;
+    }
+    @keyframes expandCircle {
+      0% {
+        width: 0;
+        height: 0;
+      }
+      100% {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    #initLoading::before {
+      content: ' ';
+      background: rgba(128, 128, 128, 0.5);
+      width: 32px;
+      height: 32px;
+      position: fixed;
+      top: calc(50% - 32px);
+      left: calc(50% - 32px);
+      border-radius: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: expandCircle 1s ease-in-out infinite;
+    }
+    #logger {
+      padding: 8px;
+      width: 400px;
+      font-family: monospace;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingMask"></div>
+  <div id="initLoading"></div>
+  <script src="./model.js"></script>
+  <script>
+    (function(){
+      let loading = document.getElementById('initLoading')
+      let mask = document.getElementById('loadingMask')
+      let checkModelLoaded = setInterval(function() {
+        if (MNIST_TRAINED_MODEL) {
+          clearInterval(checkModelLoaded)
+          loading.parentElement.removeChild(loading)
+          mask.parentElement.removeChild(mask)
+        }
+      }, 50)
+    })()
+  </script>
+  <div id="content">
+    <h1>Hand-written digits regconization</h1>
+    <center>
+      <canvas id="drwCanvas" width="400" height="400"></canvas>
+      <canvas id="tmpCanvas" width="28" height="28" style="display: none"></canvas>
+      <h2 id="resultText"></h2>
+      <br>
+      <div>
+        <button id="clearCanvasBtn" type="button" class="btn btn-danger">Clear</button>
+        <button id="regconizeDigitBtn" type="button" class="btn btn-primary">Regconize</button>
+      </div>
+    </center>
+    <br><br>
+    <div id="logger"></div>
+    <script>
+      /**
+       Drawing script is referenced by http://jsfiddle.net/yB3Kr/
+       */
+
+      const LINE_WITDH = 30
+      let curX = 0
+      let curY = 0
+      let lastX = 0
+      let lastY = 0
+      let going = false
+
+      let drwCanvas = document.getElementById('drwCanvas')
+      let drawingCtx = drwCanvas.getContext('2d')
+
+      let tmpCanvas = document.getElementById('tmpCanvas')
+      let outputCtx = tmpCanvas.getContext('2d')
+
+      let loggerText = document.getElementById('logger')
+      let resultText = document.getElementById('resultText')
+
+      let drawPoint = function(ctx, x, y) {
+        let gradient = ctx.createRadialGradient(x, y, 0, x, y, LINE_WITDH)
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+        
+        ctx.beginPath()
+        ctx.arc(x, y, LINE_WITDH, 0, 2*Math.PI)
+        ctx.fillStyle = gradient
+        ctx.fill()
+        ctx.closePath()
+      }
+
+      let startDrawing = function(e) {
+        going = true
+        lastX = e.offsetX
+        lastY = e.offsetY
+        drawPoint(drawingCtx, lastX, lastY)
+      }
+
+      $('#drwCanvas').mousedown(startDrawing)
+
+      let stopDrawing = function(e) {
+        going = false
+      }
+
+      $('#drwCanvas').mouseup(stopDrawing)
+
+      let onDrawing = function(e){
+        if(going){
+          curX = e.offsetX
+          curY = e.offsetY
+          
+          let dis = Math.sqrt(Math.pow(lastX - curX, 2) + Math.pow(lastY - curY, 2))
+          
+          for (let i = 0; i < dis; ++i) {
+              let s = i/dis;
+              drawPoint(drawingCtx, lastX*s + curX*(1 - s), lastY*s + curY*(1 - s))
+          }
+
+          lastX = curX
+          lastY = curY
+        }
+      }
+
+      $('#drwCanvas').mousemove(onDrawing)
+
+      $('#clearCanvasBtn').click(function(e) {
+        drawingCtx.clearRect(0, 0, drwCanvas.width, drwCanvas.height)
+        drwCanvas.width = drwCanvas.width
+        drwCanvas.height = drwCanvas.height
+
+        outputCtx.clearRect(0, 0, tmpCanvas.width, tmpCanvas.height)
+        tmpCanvas.width = tmpCanvas.width
+        tmpCanvas.height = tmpCanvas.height
+      })
+
+      $('#regconizeDigitBtn').click(function(e) {
+        regconizeDigitBtn.innerText = 'Converting image'
+
+        let minX = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY
+        let minY = Number.POSITIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY
+
+        let imageData = drawingCtx.getImageData(0, 0, drwCanvas.width, drwCanvas.height).data
+
+        for (let x = 0; x < drwCanvas.width; ++x) {
+          for (let y = 0; y < drwCanvas.height; ++y) {
+            let alpha = imageData[(drwCanvas.width*y + x)*4 + 3]
+            if (alpha > 128) {
+              minX = Math.min(minX, x)
+              maxX = Math.max(maxX, x)
+              minY = Math.min(minY, y)
+              maxY = Math.max(maxY, y)
+            }
+          }
+        }
+
+        let bdWidth = maxX - minX + 1
+        let bdHeight = maxY - minY + 1
+
+        let w = Math.round(bdWidth*(1.0*(tmpCanvas.width - 8)/drwCanvas.width))
+        let paddingLeft = Math.round((tmpCanvas.width - 8 - w)/2)
+
+        outputCtx.drawImage(drwCanvas, minX, minY, bdWidth, bdHeight, paddingLeft + 4, 4, w, tmpCanvas.height - 8)
+
+        let tmpCanvasData = outputCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height).data
+
+        let imageBytes = []
+
+        for (let i = 0; i < tmpCanvasData.length; i += 4) {
+          let alpha = tmpCanvasData[i + 3]
+          imageBytes.push(alpha)
+        }
+
+        imageBytes.push(1)
+
+        window.CURENT_IMAGE_BYTES = imageBytes
+
+        regconizeDigitBtn.innerText = 'Regconizing'
+        classify(imageBytes)
+        regconizeDigitBtn.innerText = 'Regconize'
+      })
+
+      let classify = function(X) {
+        let W = MNIST_TRAINED_MODEL
+        
+        if (X.length != W[0].length) {
+          console.log('Invalid dimension')
+          return
+        }
+
+        let clz = -1
+        let maxScore = Number.NEGATIVE_INFINITY
+
+        loggerText.innerText = ''
+        for (let w = 0; w < 10; ++w) {
+          let score = 0
+          for (let i = 0; i < 785; ++i) {
+            score += W[w][i]*X[i]
+          }
+          let norm = 0
+          for (let i = 0; i < 784; ++i) {
+            norm += Math.pow(W[w][i], 2)
+          }
+          score /= Math.sqrt(norm)
+
+          loggerText.innerText += 'Class ' + w + ', score = ' + score + '\n'
+          
+          if (score > maxScore) {
+            maxScore = score
+            clz = w
+          }
+        }
+
+        loggerText.innerText += 'The most confident class is ' + clz
+        resultText.innerText = clz
+      }
+    </script>
+    <br><br><br>
+    <small style="color: gray">make by phqb with ♥</small>
+  </div>
+</body>
+</html>
