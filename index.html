@@ -137,6 +137,7 @@
       }
 
       let startDrawing = function(e) {
+        e.preventDefault()
         going = true
         let x = e.clientX
         let y = e.clientY
@@ -154,6 +155,7 @@
       drwCanvas.addEventListener('touchstart', startDrawing)
 
       let stopDrawing = function(e) {
+        e.preventDefault()
         going = false
       }
 
@@ -161,6 +163,7 @@
       drwCanvas.addEventListener('touchend', stopDrawing)
 
       let onDrawing = function(e){
+        e.preventDefault()
         if(going){
           let x = e.clientX
           let y = e.clientY
