@@ -67,7 +67,7 @@
     }
     #logger {
       padding: 8px;
-      width: 300px;
+      width: 100%;
       font-family: monospace;
       color: gray;
     }
@@ -111,234 +111,238 @@
     <br><br>
     <div id="logger"></div>
     <script>
+      'use strict';
+
       /**
        Drawing script is referenced by http://jsfiddle.net/yB3Kr/
        */
 
-      const LINE_WITDH = 16
-      let curX = 0
-      let curY = 0
-      let lastX = 0
-      let lastY = 0
-      let going = false
+      var LINE_WITDH = 16;
+      var curX = 0;
+      var curY = 0;
+      var lastX = 0;
+      var lastY = 0;
+      var going = false;
 
-      let drwCanvas = document.getElementById('drwCanvas')
-      let drawingCtx = drwCanvas.getContext('2d')
+      var drwCanvas = document.getElementById('drwCanvas');
+      var drawingCtx = drwCanvas.getContext('2d');
 
-      let tmpCanvas = document.getElementById('tmpCanvas')
-      let outputCtx = tmpCanvas.getContext('2d')
+      var tmpCanvas = document.getElementById('tmpCanvas');
+      var outputCtx = tmpCanvas.getContext('2d');
 
-      let loggerText = document.getElementById('logger')
-      let resultText = document.getElementById('resultText')
+      var loggerText = document.getElementById('logger');
+      var resultText = document.getElementById('resultText');
 
-      let drawPoint = function(ctx, x, y) {
-        let gradient = ctx.createRadialGradient(x, y, 0, x, y, LINE_WITDH)
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-        
-        ctx.beginPath()
-        ctx.arc(x, y, LINE_WITDH, 0, 2*Math.PI)
-        ctx.fillStyle = gradient
-        ctx.fill()
-        ctx.closePath()
-      }
+      var drawPoint = function drawPoint(ctx, x, y) {
+        var gradient = ctx.createRadialGradient(x, y, 0, x, y, LINE_WITDH);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-      let startDrawing = function(e) {
-        e.preventDefault()
-        going = true
-        let x = e.clientX
-        let y = e.clientY
+        ctx.beginPath();
+        ctx.arc(x, y, LINE_WITDH, 0, 2 * Math.PI);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.closePath();
+      };
+
+      var startDrawing = function startDrawing(e) {
+        e.preventDefault();
+        going = true;
+        var x = e.clientX;
+        var y = e.clientY;
         if (e.touches) {
-          x = e.touches[0].clientX
-          y = e.touches[0].clientY
+          x = e.touches[0].clientX;
+          y = e.touches[0].clientY;
         }
-        let rect = drwCanvas.getBoundingClientRect()
-        lastX = x - rect.left
-        lastY = y - rect.top
-        drawPoint(drawingCtx, lastX, lastY)
-      }
+        var rect = drwCanvas.getBoundingClientRect();
+        lastX = x - rect.left;
+        lastY = y - rect.top;
+        drawPoint(drawingCtx, lastX, lastY);
+      };
 
-      drwCanvas.addEventListener('mousedown', startDrawing)
-      drwCanvas.addEventListener('touchstart', startDrawing)
+      drwCanvas.addEventListener('mousedown', startDrawing);
+      drwCanvas.addEventListener('touchstart', startDrawing);
 
-      let stopDrawing = function(e) {
-        e.preventDefault()
-        going = false
-      }
+      var stopDrawing = function stopDrawing(e) {
+        e.preventDefault();
+        going = false;
+      };
 
-      drwCanvas.addEventListener('mouseup', stopDrawing)
-      drwCanvas.addEventListener('touchend', stopDrawing)
+      drwCanvas.addEventListener('mouseup', stopDrawing);
+      drwCanvas.addEventListener('touchend', stopDrawing);
 
-      let onDrawing = function(e){
-        e.preventDefault()
-        if(going){
-          let x = e.clientX
-          let y = e.clientY
+      var onDrawing = function onDrawing(e) {
+        e.preventDefault();
+        if (going) {
+          var x = e.clientX;
+          var y = e.clientY;
           if (e.touches) {
-            x = e.touches[0].clientX
-            y = e.touches[0].clientY
+            x = e.touches[0].clientX;
+            y = e.touches[0].clientY;
           }
-          let rect = drwCanvas.getBoundingClientRect()
-          curX = x - rect.left
-          curY = y - rect.top
-          
-          let dis = Math.sqrt(Math.pow(lastX - curX, 2) + Math.pow(lastY - curY, 2))
-          
-          for (let i = 0; i < dis; ++i) {
-              let s = i/dis;
-              drawPoint(drawingCtx, lastX*s + curX*(1 - s), lastY*s + curY*(1 - s))
+          var rect = drwCanvas.getBoundingClientRect();
+          curX = x - rect.left;
+          curY = y - rect.top;
+
+          var dis = Math.sqrt(Math.pow(lastX - curX, 2) + Math.pow(lastY - curY, 2));
+
+          for (var i = 0; i < dis; ++i) {
+            var s = i / dis;
+            drawPoint(drawingCtx, lastX * s + curX * (1 - s), lastY * s + curY * (1 - s));
           }
 
-          lastX = curX
-          lastY = curY
+          lastX = curX;
+          lastY = curY;
         }
-      }
+      };
 
-      drwCanvas.addEventListener('mousemove', onDrawing)
-      drwCanvas.addEventListener('touchmove', onDrawing)
+      drwCanvas.addEventListener('mousemove', onDrawing);
+      drwCanvas.addEventListener('touchmove', onDrawing);
 
-      $('#clearCanvasBtn').click(function(e) {
-        drawingCtx.clearRect(0, 0, drwCanvas.width, drwCanvas.height)
-        drwCanvas.width = drwCanvas.width
-        drwCanvas.height = drwCanvas.height
+      $('#clearCanvasBtn').click(function (e) {
+        drawingCtx.clearRect(0, 0, drwCanvas.width, drwCanvas.height);
+        drwCanvas.width = drwCanvas.width;
+        drwCanvas.height = drwCanvas.height;
 
-        outputCtx.clearRect(0, 0, tmpCanvas.width, tmpCanvas.height)
-        tmpCanvas.width = tmpCanvas.width
-        tmpCanvas.height = tmpCanvas.height
+        outputCtx.clearRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+        tmpCanvas.width = tmpCanvas.width;
+        tmpCanvas.height = tmpCanvas.height;
 
-        resultText.innerText = ''
-        loggerText.innerText = ''
-      })
+        resultText.innerText = '';
+        loggerText.innerText = '';
+      });
 
-      $('#oneVsRestBtn').click(function(e) {
-        classify = oneVsRestClassify
-        $(this).addClass('btn-primary')
-        $('#oneVsOneBtn').removeClass('btn-primary')
-      })
+      $('#oneVsRestBtn').click(function (e) {
+        classify = oneVsRestClassify;
+        $(this).addClass('btn-primary');
+        $('#oneVsOneBtn').removeClass('btn-primary');
+      });
 
-      $('#oneVsOneBtn').click(function(e) {
-        classify = oneVsOneClassify
-        $(this).addClass('btn-primary')
-        $('#oneVsRestBtn').removeClass('btn-primary')
-      })
+      $('#oneVsOneBtn').click(function (e) {
+        classify = oneVsOneClassify;
+        $(this).addClass('btn-primary');
+        $('#oneVsRestBtn').removeClass('btn-primary');
+      });
 
-      $('#regconizeDigitBtn').click(function(e) {
-        regconizeDigitBtn.innerText = 'Converting image'
+      $('#regconizeDigitBtn').click(function (e) {
+        regconizeDigitBtn.innerText = 'Converting image';
 
-        let minX = Number.POSITIVE_INFINITY, maxX = Number.NEGATIVE_INFINITY
-        let minY = Number.POSITIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY
+        var minX = Number.POSITIVE_INFINITY,
+            maxX = Number.NEGATIVE_INFINITY;
+        var minY = Number.POSITIVE_INFINITY,
+            maxY = Number.NEGATIVE_INFINITY;
 
-        let imageData = drawingCtx.getImageData(0, 0, drwCanvas.width, drwCanvas.height).data
+        var imageData = drawingCtx.getImageData(0, 0, drwCanvas.width, drwCanvas.height).data;
 
-        for (let x = 0; x < drwCanvas.width; ++x) {
-          for (let y = 0; y < drwCanvas.height; ++y) {
-            let alpha = imageData[(drwCanvas.width*y + x)*4 + 3]
+        for (var x = 0; x < drwCanvas.width; ++x) {
+          for (var y = 0; y < drwCanvas.height; ++y) {
+            var alpha = imageData[(drwCanvas.width * y + x) * 4 + 3];
             if (alpha > 128) {
-              minX = Math.min(minX, x)
-              maxX = Math.max(maxX, x)
-              minY = Math.min(minY, y)
-              maxY = Math.max(maxY, y)
+              minX = Math.min(minX, x);
+              maxX = Math.max(maxX, x);
+              minY = Math.min(minY, y);
+              maxY = Math.max(maxY, y);
             }
           }
         }
 
-        let bdWidth = maxX - minX + 1
-        let bdHeight = maxY - minY + 1
+        var bdWidth = maxX - minX + 1;
+        var bdHeight = maxY - minY + 1;
 
-        let w = Math.round(bdWidth*(1.0*(tmpCanvas.width - 8)/drwCanvas.width))
-        let paddingLeft = Math.round((tmpCanvas.width - 8 - w)/2)
+        var w = Math.round(bdWidth * (1.0 * (tmpCanvas.width - 8) / drwCanvas.width));
+        var paddingLeft = Math.round((tmpCanvas.width - 8 - w) / 2);
 
-        outputCtx.drawImage(drwCanvas, minX, minY, bdWidth, bdHeight, paddingLeft + 4, 4, w, tmpCanvas.height - 8)
+        outputCtx.drawImage(drwCanvas, minX, minY, bdWidth, bdHeight, paddingLeft + 4, 4, w, tmpCanvas.height - 8);
 
-        let tmpCanvasData = outputCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height).data
+        var tmpCanvasData = outputCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height).data;
 
-        let imageBytes = []
+        var imageBytes = [];
 
-        for (let i = 0; i < tmpCanvasData.length; i += 4) {
-          let alpha = tmpCanvasData[i + 3]
-          imageBytes.push(alpha)
+        for (var i = 0; i < tmpCanvasData.length; i += 4) {
+          var _alpha = tmpCanvasData[i + 3];
+          imageBytes.push(_alpha);
         }
 
-        imageBytes.push(1)
+        imageBytes.push(1);
 
-        window.CURENT_IMAGE_BYTES = imageBytes
+        window.CURENT_IMAGE_BYTES = imageBytes;
 
-        regconizeDigitBtn.innerText = 'Regconizing'
-        classify(imageBytes)
-        regconizeDigitBtn.innerText = 'Regconize'
-      })
+        regconizeDigitBtn.innerText = 'Regconizing';
+        classify(imageBytes);
+        regconizeDigitBtn.innerText = 'Regconize';
+      });
 
-      let oneVsOneClassify = function(X) {
-        let W = MNIST_TRAINED_MODEL_ONE_ONE
-        let votes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for (let p = 0; p < 9; ++p) {
-          for (let n = p + 1; n < 10; ++n) {
-            let w = W[p + '' + n]
-            let score = 0
-            for (let i = 0; i < 785; ++i) {
-              score += w[i]*X[i]
+      var oneVsOneClassify = function oneVsOneClassify(X) {
+        var W = MNIST_TRAINED_MODEL_ONE_ONE;
+        var votes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (var p = 0; p < 9; ++p) {
+          for (var n = p + 1; n < 10; ++n) {
+            var w = W[p + '' + n];
+            var score = 0;
+            for (var i = 0; i < 785; ++i) {
+              score += w[i] * X[i];
             }
             if (score > 0) {
-              votes[p] += 1
+              votes[p] += 1;
             } else if (score < 0) {
-              votes[n] += 1
+              votes[n] += 1;
             }
           }
         }
 
-        loggerText.innerText = ''
+        loggerText.innerText = '';
 
-        let maxVote = 0
-        let clz = -1
-        for (let c = 0; c < 10; ++c) {
+        var maxVote = 0;
+        var clz = -1;
+        for (var c = 0; c < 10; ++c) {
           if (votes[c] > maxVote) {
-            maxVote = votes[c]
-            clz = c
+            maxVote = votes[c];
+            clz = c;
           }
 
-          loggerText.innerText += 'Class ' + c + ': ' + votes[c] + ' vote(s).\n'
+          loggerText.innerText += 'Class ' + c + ': ' + votes[c] + ' vote(s).\n';
         }
         loggerText.innerText += 'The most voted class is ' + clz;
 
-        resultText.innerText = clz
-      }
+        resultText.innerText = clz;
+      };
 
-      let oneVsRestClassify = function(X) {
-        let W = MNIST_TRAINED_MODEL_ONE_REST
-        
+      var oneVsRestClassify = function oneVsRestClassify(X) {
+        var W = MNIST_TRAINED_MODEL_ONE_REST;
+
         if (X.length != W[0].length) {
-          console.log('Invalid dimension')
-          return
+          console.log('Invalid dimension');
+          return;
         }
 
-        let clz = -1
-        let maxScore = Number.NEGATIVE_INFINITY
+        var clz = -1;
+        var maxScore = Number.NEGATIVE_INFINITY;
 
-        loggerText.innerText = ''
-        for (let w = 0; w < 10; ++w) {
-          let score = 0
-          for (let i = 0; i < 785; ++i) {
-            score += W[w][i]*X[i]
+        loggerText.innerText = '';
+        for (var w = 0; w < 10; ++w) {
+          var score = 0;
+          for (var i = 0; i < 785; ++i) {
+            score += W[w][i] * X[i];
           }
-          let norm = 0
-          for (let i = 0; i < 784; ++i) {
-            norm += Math.pow(W[w][i], 2)
+          var norm = 0;
+          for (var _i = 0; _i < 784; ++_i) {
+            norm += Math.pow(W[w][_i], 2);
           }
-          score /= Math.sqrt(norm)
+          score /= Math.sqrt(norm);
 
-          loggerText.innerText += 'Class ' + w + ', score = ' + score + '\n'
-          
+          loggerText.innerText += 'Class ' + w + ', score = ' + score + '\n';
+
           if (score > maxScore) {
-            maxScore = score
-            clz = w
+            maxScore = score;
+            clz = w;
           }
         }
 
-        loggerText.innerText += 'The most confident class is ' + clz
-        resultText.innerText = clz
-      }
+        loggerText.innerText += 'The most confident class is ' + clz;
+        resultText.innerText = clz;
+      };
 
-      let classify = oneVsRestClassify
+      var classify = oneVsRestClassify;
     </script>
     <br><br><br>
     <small style="color: gray">make by phqb with ♥</small>
