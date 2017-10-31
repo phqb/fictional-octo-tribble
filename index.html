@@ -79,9 +79,9 @@
     <script src="./model.js"></script>
     <script>
         (function(){
-            let loading = document.getElementById('initLoading')
-            let mask = document.getElementById('loadingMask')
-            let checkModelLoaded = setInterval(function() {
+            var loading = document.getElementById('initLoading')
+            var mask = document.getElementById('loadingMask')
+            var checkModelLoaded = setInterval(function() {
                 if (MNIST_TRAINED_MODEL_ONE_REST && MNIST_TRAINED_MODEL_ONE_ONE) {
                     clearInterval(checkModelLoaded)
                     loading.parentElement.removeChild(loading)
