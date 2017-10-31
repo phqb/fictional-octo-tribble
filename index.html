@@ -82,7 +82,7 @@
       let loading = document.getElementById('initLoading')
       let mask = document.getElementById('loadingMask')
       let checkModelLoaded = setInterval(function() {
-        if (MNIST_TRAINED_MODEL_ONE_REST && MNIST_TRAINED_MODEL_ONE_ONE) {
+          if (MNIST_TRAINED_MODEL_ONE_REST && MNIST_TRAINED_MODEL_ONE_ONE) {
           clearInterval(checkModelLoaded)
           loading.parentElement.removeChild(loading)
           mask.parentElement.removeChild(mask)
@@ -95,7 +95,7 @@
     <br>
     <div class="btn-group" role="group">
       <button id="oneVsRestBtn" type="button" class="btn btn-primary">One vs Rest (91.76%)</button>
-      <button id="oneVsOneBtn" type="button" class="btn btn-secondary">One vs One (91.21%)</button>
+      <button id="oneVsOneBtn" type="button" class="btn btn-secondary">One vs One (92.46%)</button>
     </div>
     <br><br>
     <center>
